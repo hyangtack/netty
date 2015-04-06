@@ -420,7 +420,7 @@ public class SocketSslEchoTest extends AbstractSocketTest {
         }
 
         @Override
-        public final void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+        public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
             try {
                 ctx.flush();
             } finally {
@@ -494,6 +494,8 @@ public class SocketSslEchoTest extends AbstractSocketTest {
 
         @Override
         public void channelRead0(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
+        	ctx.channel().config().setAutoRead(autoRead);
+        	
             byte[] actual = new byte[in.readableBytes()];
             in.readBytes(actual);
 
@@ -526,6 +528,15 @@ public class SocketSslEchoTest extends AbstractSocketTest {
                 assertThat(renegoFuture, is(sameInstance(sslHandler.handshakeFuture())));
                 assertThat(renegoFuture.isDone(), is(false));
             }
+            
+            if (!autoRead) {
+                ctx.read();
+            }
+        }
+        
+        @Override
+        public final void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+            ctx.flush();
         }
     }
 }
